@@ -27,7 +27,7 @@ func _ready() -> void:
 	add_to_group("enemies")
 	health_label = Label.new()
 	health_label.text = _status_text()
-	health_label.position = Vector2(-42, -57)
+	health_label.position = Vector2(-54, -76)
 	health_label.add_theme_font_size_override("font_size", 12)
 	health_label.add_theme_color_override("font_color", Color("#ffe58a"))
 	add_child(health_label)
@@ -142,7 +142,10 @@ func _draw() -> void:
 	var horn := Color("#f4ead0")
 	var bob := sin(animation_time * 5.0) * 1.4
 	var walk := sin(animation_time * 8.0) * 2.2
-	draw_set_transform(Vector2(0, bob), 0.0, Vector2.ONE)
+	draw_set_transform(Vector2(0, bob), 0.0, Vector2(direction, 1.0))
+
+	if weapon_round:
+		_draw_status_bars()
 
 	# Tail, legs and boots
 	draw_colored_polygon(PackedVector2Array([Vector2(-13, 12), Vector2(-29, 19 + sin(animation_time * 5.0) * 2.0), Vector2(-35, 15 + sin(animation_time * 5.0) * 2.0), Vector2(-22, 8), Vector2(-12, 5)]), skin)
@@ -196,6 +199,27 @@ func _draw() -> void:
 	draw_colored_polygon(PackedVector2Array([Vector2(-21, 4), Vector2(-24, -3), Vector2(-17, 2)]), horn)
 	draw_colored_polygon(PackedVector2Array([Vector2(21, 4), Vector2(24, -3), Vector2(17, 2)]), horn)
 
+
+func _draw_status_bars() -> void:
+	var start_x := -29.0
+	var y := -57.0
+	var gap := 2.0
+	for i in range(5):
+		var x := start_x + float(i) * 12.0
+		draw_rect(Rect2(x, y, 10, 5), Color("#202a38"))
+		var active := false
+		var fill := Color("#d4dce7")
+		if i == 0:
+			active = armor_health > 0
+			fill = Color("#9aa9bb")
+		elif i == 1:
+			active = jetpack_health > 0
+			fill = Color("#38bdf8")
+		else:
+			active = health >= (i - 1)
+			fill = Color("#ef4444")
+		if active:
+			draw_rect(Rect2(x + 1, y + 1, 8, 3), fill)
 
 func _draw_jetpack() -> void:
 	# Mounted behind Bowser, on the shell side.
