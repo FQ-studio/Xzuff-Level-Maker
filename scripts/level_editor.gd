@@ -6,7 +6,8 @@ const CELL := 32
 const SAVE_PATH := "user://level.json"
 
 var cells: Array = []
-var selected_block := 1
+var enemies: Array[Vector2i] = []
+var selected_tool := 1
 var grid_view: Control
 var status_label: Label
 
@@ -27,7 +28,7 @@ func _build_ui() -> void:
 	var header := HBoxContainer.new()
 	root.add_child(header)
 	var title := Label.new()
-	title.text = "LEVEL EDITOR"
+	title.text = "XZUFF LEVEL EDITOR"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 	var back := Button.new()
@@ -41,8 +42,9 @@ func _build_ui() -> void:
 	_add_tool_button(tools, "Ground", 1)
 	_add_tool_button(tools, "Brick", 2)
 	_add_tool_button(tools, "Hazard", 3)
+	_add_tool_button(tools, "Enemy", 4)
 	var save_button := Button.new()
-	save_button.text = "SAVE LEVEL"
+	save_button.text = "SAVE"
 	save_button.pressed.connect(_save_level)
 	tools.add_child(save_button)
 	var test_button := Button.new()
@@ -59,13 +61,16 @@ func _build_ui() -> void:
 	root.add_child(grid_view)
 
 	status_label = Label.new()
-	status_label.text = "Select a block, then tap a cell to build."
+	status_label.text = "Choose a tool, then tap a grid cell."
 	root.add_child(status_label)
 
-func _add_tool_button(parent: HBoxContainer, caption: String, block_id: int) -> void:
+func _add_tool_button(parent: HBoxContainer, caption: String, tool_id: int) -> void:
 	var button := Button.new()
 	button.text = caption
-	button.pressed.connect(func(): selected_block = block_id; status_label.text = "Selected: " + caption)
+	button.pressed.connect(func():
+		selected_tool = tool_id
+		status_label.text = "Selected: " + caption
+	)
 	parent.add_child(button)
 
 func _draw_grid() -> void:
@@ -78,21 +83,44 @@ func _draw_grid() -> void:
 				2: color = Color("#bd824c")
 				3: color = Color("#d95757")
 			grid_view.draw_rect(rect, color)
+	for cell in enemies:
+		var center := Vector2(cell.x * CELL + CELL / 2.0, cell.y * CELL + CELL / 2.0)
+		grid_view.draw_circle(center, 10.0, Color("#ff9a45"))
+		grid_view.draw_circle(center + Vector2(-3, -2), 2.0, Color.WHITE)
+		grid_view.draw_circle(center + Vector2(3, -2), 2.0, Color.WHITE)
 
 func _on_grid_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var cell_x := int(event.position.x / CELL)
 		var cell_y := int(event.position.y / CELL)
-		if cell_x >= 0 and cell_x < GRID_W and cell_y >= 0 and cell_y < GRID_H:
-			cells[cell_y][cell_x] = selected_block
-			grid_view.queue_redraw()
+		if cell_x < 0 or cell_x >= GRID_W or cell_y < 0 or cell_y >= GRID_H:
+			return
+		var cell := Vector2i(cell_x, cell_y)
+		if selected_tool == 4:
+			if not enemies.has(cell):
+				enemies.append(cell)
+				status_label.text = "Enemy placed."
+		else:
+			cells[cell_y][cell_x] = selected_tool
+			if selected_tool == 0:
+				enemies.erase(cell)
+			status_label.text = "Block updated."
+		grid_view.queue_redraw()
 
 func _save_level() -> void:
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
 		status_label.text = "Could not save level."
 		return
-	file.store_string(JSON.stringify({"width": GRID_W, "height": GRID_H, "cells": cells}))
+	var enemy_data: Array = []
+	for cell in enemies:
+		enemy_data.append({"x": cell.x, "y": cell.y})
+	file.store_string(JSON.stringify({
+		"width": GRID_W,
+		"height": GRID_H,
+		"cells": cells,
+		"enemies": enemy_data
+	}))
 	status_label.text = "Level saved on this device."
 
 func _test_level() -> void:
