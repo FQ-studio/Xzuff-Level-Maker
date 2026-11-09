@@ -92,10 +92,10 @@ func _update_weapon_round(delta: float) -> void:
 		direction *= -1.0
 
 func _fire_pistol(target: Node2D) -> void:
-	var projectile := FIRE_PROJECTILE_SCENE.instantiate()
+	var projectile := FIRE_PROJECTILE_SCENE.instantiate() as Area2D
 	var muzzle := global_position + Vector2(34.0 * direction, -5.0)
 	projectile.global_position = muzzle
-	projectile.direction = (target.global_position - muzzle).normalized()
+	projectile.set("direction", (target.global_position - muzzle).normalized())
 	get_tree().current_scene.add_child(projectile)
 	queue_redraw()
 
