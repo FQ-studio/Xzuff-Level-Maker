@@ -133,6 +133,7 @@ func _spawn_boss() -> void:
 	if cell_x < 0 or cell_x >= level_width or cell_y < 0 or cell_y >= level_height:
 		return
 	var boss := BOSS_SCENE.instantiate()
+	boss.weapon_round = bool(boss_data.get("weapon_round", false))
 	boss.position = Vector2(cell_x * CELL + CELL / 2.0, cell_y * CELL + CELL / 2.0)
 	add_child(boss)
 
