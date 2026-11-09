@@ -1,0 +1,30 @@
+name: Xzuff Level Maker Godot CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Godot 4
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.4.1
+          use-dotnet: false
+
+      - name: Show Godot version
+        run: godot --version
+
+      - name: Import project resources
+        run: godot --headless --editor --path . --quit
+
+      - name: Validate project startup
+        run: godot --headless --path . --quit-after 3
