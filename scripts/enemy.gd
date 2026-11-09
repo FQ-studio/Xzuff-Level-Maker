@@ -7,6 +7,7 @@ var direction := 1.0
 
 func _ready() -> void:
 	start_x = global_position.x
+	add_to_group("enemies")
 
 func _physics_process(delta: float) -> void:
 	velocity.x = direction * speed
