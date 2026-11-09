@@ -9,6 +9,7 @@ var start_x := 0.0
 var direction := -1.0
 var health_label: Label
 var damage_flash := 0.0
+var animation_time := 0.0
 
 func _ready() -> void:
 	health = max_health
@@ -20,6 +21,10 @@ func _ready() -> void:
 	health_label.add_theme_font_size_override("font_size", 12)
 	health_label.add_theme_color_override("font_color", Color("#ffe58a"))
 	add_child(health_label)
+	queue_redraw()
+
+func _process(delta: float) -> void:
+	animation_time += delta
 	queue_redraw()
 
 func _physics_process(delta: float) -> void:
@@ -38,13 +43,16 @@ func _draw() -> void:
 	var shell := Color("#d94b32") if damage_flash <= 0.0 else Color("#fff0a8")
 	var dark := Color("#273326")
 	var horn := Color("#f4ead0")
+	var bob := sin(animation_time * 5.0) * 1.4
+	var walk := sin(animation_time * 8.0) * 2.2
+	draw_set_transform(Vector2(0, bob), 0.0, Vector2.ONE)
 
 	# Tail, legs and boots
-	draw_colored_polygon(PackedVector2Array([Vector2(-13, 12), Vector2(-29, 19), Vector2(-35, 15), Vector2(-22, 8), Vector2(-12, 5)]), skin)
-	draw_rect(Rect2(-17, 17, 12, 9), skin)
-	draw_rect(Rect2(7, 17, 12, 9), skin)
-	draw_rect(Rect2(-19, 23, 17, 5), dark)
-	draw_rect(Rect2(5, 23, 17, 5), dark)
+	draw_colored_polygon(PackedVector2Array([Vector2(-13, 12), Vector2(-29, 19 + sin(animation_time * 5.0) * 2.0), Vector2(-35, 15 + sin(animation_time * 5.0) * 2.0), Vector2(-22, 8), Vector2(-12, 5)]), skin)
+	draw_rect(Rect2(-17, 17 + walk, 12, 9), skin)
+	draw_rect(Rect2(7, 17 - walk, 12, 9), skin)
+	draw_rect(Rect2(-19, 23 + walk, 17, 5), dark)
+	draw_rect(Rect2(5, 23 - walk, 17, 5), dark)
 
 	# Spiked red shell
 	draw_circle(Vector2(0, -1), 25, dark)
