@@ -12,13 +12,17 @@ A 2D platform game and level-building prototype made with **Godot 4** and **GDSc
 - Player movement, jumping, idle/run/jump visual animation, and respawn
 - Smooth player-follow camera with level bounds
 - Optimized horizontal runs of matching tile collision shapes
-- Final boss with three stomp hits before defeat
+- Final boss with three stomp hits before defeat in standard rounds
+- Weapon Round Bowser with independent Armor (1), Jetpack (1), and health (3) segments
+- Bowser weapon-round AI: timed jetpack flight and aimed fire-pistol projectiles
+- Player weapon shots can target Armor (1), Jetpack (2), or Bowser health (3)
 - GitHub Actions workflow for headless Godot validation
 
 ## Controls
 
 - Move: Left / Right arrow keys
 - Jump: Space / Enter
+- Weapon Round: hold F to fire; select target with 1 (Armor), 2 (Jetpack), or 3 (Bowser health)
 - Editor: choose a tool, then tap/click a grid cell; swipe horizontally to reach later columns
 
 ## Run
