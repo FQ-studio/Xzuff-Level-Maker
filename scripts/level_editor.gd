@@ -8,6 +8,8 @@ const SAVE_PATH := "user://level.json"
 var cells: Array = []
 var enemies: Array[Vector2i] = []
 var boss_cell := Vector2i(-1, -1)
+var weapon_round_enabled := false
+var weapon_round_toggle: CheckBox
 var selected_tool := 1
 var grid_view: Control
 var status_label: Label
@@ -50,6 +52,13 @@ func _build_ui() -> void:
 	_add_tool_button(tools, "Castle", 4)
 	_add_tool_button(tools, "Enemy", 5)
 	_add_tool_button(tools, "Final Boss", 6)
+	weapon_round_toggle = CheckBox.new()
+	weapon_round_toggle.text = "Weapon Round Bowser"
+	weapon_round_toggle.toggled.connect(func(enabled: bool):
+		weapon_round_enabled = enabled
+		status_label.text = "Weapon Round Bowser: " + ("ON" if enabled else "OFF")
+	)
+	tools.add_child(weapon_round_toggle)
 
 	var save_button := Button.new()
 	save_button.text = "SAVE"
@@ -138,7 +147,9 @@ func _on_grid_input(event: InputEvent) -> void:
 				if selected_tool == 0:
 					enemies.erase(cell)
 					if boss_cell == cell:
-						boss_cell = Vector2i(-1, -1)
+							weapon_round_enabled = false
+				if weapon_round_toggle != null:
+					weapon_round_toggle.button_pressed = false
 				status_label.text = "Block updated."
 		grid_view.queue_redraw()
 
@@ -152,7 +163,7 @@ func _save_level() -> void:
 		enemy_data.append({"x": cell.x, "y": cell.y})
 	var boss_data = null
 	if boss_cell.x >= 0:
-		boss_data = {"x": boss_cell.x, "y": boss_cell.y}
+		boss_data = {"x": boss_cell.x, "y": boss_cell.y, "weapon_round": weapon_round_enabled}
 	file.store_string(JSON.stringify({
 		"width": GRID_W,
 		"height": GRID_H,
@@ -217,6 +228,11 @@ func _load_level() -> void:
 		var candidate := Vector2i(int(boss_data["x"]), int(boss_data["y"]))
 		if candidate.x >= 0 and candidate.x < GRID_W and candidate.y >= 0 and candidate.y < GRID_H:
 			boss_cell = candidate
+			weapon_round_enabled = bool(boss_data.get("weapon_round", false))
+		else:
+			weapon_round_enabled = false
+	if weapon_round_toggle != null:
+		weapon_round_toggle.button_pressed = weapon_round_enabled
 
 	grid_view.queue_redraw()
 	status_label.text = "Level loaded. Old 24-column saves are expanded automatically."
