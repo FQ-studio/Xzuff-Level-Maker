@@ -47,6 +47,10 @@ func _build_ui() -> void:
 	save_button.text = "SAVE"
 	save_button.pressed.connect(_save_level)
 	tools.add_child(save_button)
+	var load_button := Button.new()
+	load_button.text = "LOAD"
+	load_button.pressed.connect(_load_level)
+	tools.add_child(load_button)
 	var test_button := Button.new()
 	test_button.text = "PLAY / TEST"
 	test_button.pressed.connect(_test_level)
@@ -126,3 +130,35 @@ func _save_level() -> void:
 func _test_level() -> void:
 	_save_level()
 	get_tree().change_scene_to_file("res://scenes/game.tscn")
+
+
+func _load_level() -> void:
+	if not FileAccess.file_exists(SAVE_PATH):
+		status_label.text = "No saved level found on this device."
+		return
+	var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if file == null:
+		status_label.text = "Could not open saved level."
+		return
+	var parsed = JSON.parse_string(file.get_as_text())
+	if not parsed is Dictionary or not parsed.has("cells") or not parsed["cells"] is Array:
+		status_label.text = "Saved level data is invalid."
+		return
+	var loaded_cells: Array = parsed["cells"]
+	if loaded_cells.size() != GRID_H:
+		status_label.text = "Saved level has an incompatible grid height."
+		return
+	for row in loaded_cells:
+		if not row is Array or row.size() != GRID_W:
+			status_label.text = "Saved level has an incompatible grid width."
+			return
+	cells = loaded_cells.duplicate(true)
+	enemies.clear()
+	if parsed.has("enemies") and parsed["enemies"] is Array:
+		for data in parsed["enemies"]:
+			if data is Dictionary and data.has("x") and data.has("y"):
+				var cell := Vector2i(int(data["x"]), int(data["y"]))
+				if cell.x >= 0 and cell.x < GRID_W and cell.y >= 0 and cell.y < GRID_H and not enemies.has(cell):
+					enemies.append(cell)
+	grid_view.queue_redraw()
+	status_label.text = "Level loaded successfully."
