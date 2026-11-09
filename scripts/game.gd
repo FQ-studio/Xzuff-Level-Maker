@@ -40,6 +40,7 @@ func _build_world() -> void:
 				continue
 			var body := StaticBody2D.new()
 			body.position = Vector2(x * CELL + CELL / 2.0, y * CELL + CELL / 2.0)
+			body.set_meta("block_id", block_id)
 			var collision := CollisionShape2D.new()
 			var shape := RectangleShape2D.new()
 			shape.size = Vector2(CELL, CELL)
