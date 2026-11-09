@@ -12,7 +12,23 @@ func _ready() -> void:
 	_load_level()
 	_build_world()
 	_spawn_enemies()
+	_setup_camera()
 	queue_redraw()
+
+func _setup_camera() -> void:
+	var player := get_node_or_null("Player") as CharacterBody2D
+	if player == null:
+		return
+
+	var camera := Camera2D.new()
+	camera.name = "FollowCamera"
+	camera.position_smoothing_enabled = true
+	camera.position_smoothing_speed = 7.0
+	camera.limit_left = 0
+	camera.limit_top = 0
+	camera.limit_right = level_cells[0].size() * CELL if not level_cells.is_empty() else GRID_W * CELL
+	camera.limit_bottom = level_cells.size() * CELL if not level_cells.is_empty() else GRID_H * CELL
+	player.add_child(camera)
 
 func _load_level() -> void:
 	if not FileAccess.file_exists("user://level.json"):
