@@ -53,10 +53,6 @@ func _draw() -> void:
 	var walk := sin(animation_time * 8.0) * 2.2
 	draw_set_transform(Vector2(0, bob), 0.0, Vector2.ONE)
 
-	# Weapon-round equipment is layered onto the original Bowser design.
-	if weapon_round:
-		_draw_jetpack()
-
 	# Tail, legs and boots
 	draw_colored_polygon(PackedVector2Array([Vector2(-13, 12), Vector2(-29, 19 + sin(animation_time * 5.0) * 2.0), Vector2(-35, 15 + sin(animation_time * 5.0) * 2.0), Vector2(-22, 8), Vector2(-12, 5)]), skin)
 	draw_rect(Rect2(-17, 17 + walk, 12, 9), skin)
@@ -75,16 +71,18 @@ func _draw() -> void:
 		draw_colored_polygon(PackedVector2Array([base - side, tip, base + side]), horn)
 	draw_circle(Vector2(0, -2), 14, Color("#f4a34c"))
 	draw_arc(Vector2(0, -2), 15, 0.0, TAU, 32, Color("#713c2d"), 2.0)
-
-	# Weapon-round armor protects the original torso while keeping Bowser recognizable.
 	if weapon_round:
-		_draw_armor()
+		_draw_jetpack()
+
+	# Green body and segmented belly
 
 	# Green body and segmented belly
 	draw_colored_polygon(PackedVector2Array([Vector2(-17, -17), Vector2(15, -17), Vector2(20, 8), Vector2(12, 22), Vector2(-13, 22), Vector2(-21, 7)]), skin)
 	draw_colored_polygon(PackedVector2Array([Vector2(-10, -5), Vector2(10, -5), Vector2(13, 16), Vector2(-12, 16)]), belly)
 	for y in range(3):
 		draw_line(Vector2(-9, 1 + y * 5), Vector2(9, 1 + y * 5), Color("#c79c51"), 1.5)
+	if weapon_round:
+		_draw_armor()
 
 	# Head, horns, eyes and muzzle
 	draw_circle(Vector2(0, -22), 15, skin)
