@@ -11,6 +11,15 @@ var health_label: Label
 var damage_flash := 0.0
 var animation_time := 0.0
 @export var weapon_round := false
+@export var pistol_interval := 1.65
+@export var jetpack_interval := 4.8
+var armor_health := 1
+var jetpack_health := 1
+var pistol_timer := 0.8
+var flight_timer := 0.0
+var flight_time_left := 0.0
+var is_flying := false
+const FIRE_PROJECTILE_SCENE: PackedScene = preload("res://scenes/boss_fire_projectile.tscn")
 
 func _ready() -> void:
 	health = max_health
@@ -30,18 +39,100 @@ func _process(delta: float) -> void:
 
 func _status_text() -> String:
 	if weapon_round:
-		return "A■  J■  B■■■"
+		return "ARMOR " + str(armor_health) + "/1  JETPACK " + str(jetpack_health) + "/1  HP " + str(max(health, 0)) + "/" + str(max_health)
 	return "BOWSER " + str(max(health, 0)) + "/" + str(max_health)
 
 func _physics_process(delta: float) -> void:
-	velocity.x = direction * speed
-	velocity.y += float(ProjectSettings.get_setting("physics/2d/default_gravity")) * delta
-	move_and_slide()
-	if is_on_wall() or abs(global_position.x - start_x) >= patrol_distance:
-		direction *= -1.0
+	if weapon_round:
+		_update_weapon_round(delta)
+	else:
+		velocity.x = direction * speed
+		velocity.y += float(ProjectSettings.get_setting("physics/2d/default_gravity")) * delta
+		move_and_slide()
+		if is_on_wall() or abs(global_position.x - start_x) >= patrol_distance:
+			direction *= -1.0
 	if damage_flash > 0.0:
 		damage_flash = maxf(0.0, damage_flash - delta)
 		queue_redraw()
+
+func _update_weapon_round(delta: float) -> void:
+	var player := get_tree().get_first_node_in_group("player") as Node2D
+	if jetpack_health > 0:
+		if is_flying:
+			flight_time_left -= delta
+			velocity.y = -155.0
+			if flight_time_left <= 0.0:
+				is_flying = false
+				velocity.y = 0.0
+		else:
+			flight_timer += delta
+			velocity.y += float(ProjectSettings.get_setting("physics/2d/default_gravity")) * delta
+			if flight_timer >= jetpack_interval:
+				flight_timer = 0.0
+				is_flying = true
+				flight_time_left = 1.55
+	else:
+		is_flying = false
+		velocity.y += float(ProjectSettings.get_setting("physics/2d/default_gravity")) * delta
+
+	if player != null:
+		var dx := player.global_position.x - global_position.x
+		if absf(dx) > 2.0:
+			direction = signf(dx)
+		velocity.x = direction * (speed * (1.25 if is_flying else 0.9))
+		pistol_timer -= delta
+		if pistol_timer <= 0.0 and absf(dx) < 520.0:
+			_fire_pistol(player)
+			pistol_timer = pistol_interval
+	else:
+		velocity.x = direction * speed * 0.8
+
+	move_and_slide()
+	if is_on_wall() or abs(global_position.x - start_x) >= patrol_distance * 1.8:
+		direction *= -1.0
+
+func _fire_pistol(target: Node2D) -> void:
+	var projectile := FIRE_PROJECTILE_SCENE.instantiate()
+	var muzzle := global_position + Vector2(34.0 * direction, -5.0)
+	projectile.global_position = muzzle
+	projectile.direction = (target.global_position - muzzle).normalized()
+	get_tree().current_scene.add_child(projectile)
+	queue_redraw()
+
+func can_be_stomped() -> bool:
+	return not weapon_round
+
+func take_component_hit(component: String, damage: int = 1) -> void:
+	if not weapon_round or damage <= 0:
+		return
+	match component.to_lower():
+		"armor":
+			armor_health = maxi(0, armor_health - damage)
+		"jetpack":
+			jetpack_health = maxi(0, jetpack_health - damage)
+			if jetpack_health == 0:
+				is_flying = false
+				flight_time_left = 0.0
+				velocity.y = 0.0
+		"health", "bowser":
+			health = maxi(0, health - damage)
+	if health_label != null:
+		health_label.text = _status_text()
+	damage_flash = 0.16
+	queue_redraw()
+	if health <= 0:
+		queue_free()
+
+func take_stomp() -> void:
+	if weapon_round:
+		return
+	health -= 1
+	damage_flash = 0.18
+	if health_label != null:
+		health_label.text = _status_text()
+	queue_redraw()
+	if health <= 0:
+		queue_free()
 
 func _draw() -> void:
 	var skin := Color("#72b83b")
@@ -71,7 +162,7 @@ func _draw() -> void:
 		draw_colored_polygon(PackedVector2Array([base - side, tip, base + side]), horn)
 	draw_circle(Vector2(0, -2), 14, Color("#f4a34c"))
 	draw_arc(Vector2(0, -2), 15, 0.0, TAU, 32, Color("#713c2d"), 2.0)
-	if weapon_round:
+	if weapon_round and jetpack_health > 0:
 		_draw_jetpack()
 
 	# Green body and segmented belly
@@ -79,7 +170,7 @@ func _draw() -> void:
 	draw_colored_polygon(PackedVector2Array([Vector2(-10, -5), Vector2(10, -5), Vector2(13, 16), Vector2(-12, 16)]), belly)
 	for y in range(3):
 		draw_line(Vector2(-9, 1 + y * 5), Vector2(9, 1 + y * 5), Color("#c79c51"), 1.5)
-	if weapon_round:
+	if weapon_round and armor_health > 0:
 		_draw_armor()
 
 	# Head, horns, eyes and muzzle
@@ -114,6 +205,9 @@ func _draw_jetpack() -> void:
 	draw_rect(Rect2(-33, -19, 10, 7), Color("#c4ccd6"))
 	draw_colored_polygon(PackedVector2Array([Vector2(-34, 15), Vector2(-30, 15), Vector2(-29, 23), Vector2(-36, 23)]), Color("#e0a13c"))
 	draw_colored_polygon(PackedVector2Array([Vector2(-35, 23), Vector2(-29, 23), Vector2(-32, 30)]), Color("#ff6b35"))
+	if is_flying:
+		draw_colored_polygon(PackedVector2Array([Vector2(-37, 27), Vector2(-27, 27), Vector2(-32, 42)]), Color("#ffb52e"))
+		draw_colored_polygon(PackedVector2Array([Vector2(-35, 31), Vector2(-29, 31), Vector2(-32, 39)]), Color("#fff0a8"))
 
 func _draw_armor() -> void:
 	# Chest plate follows Bowser's body; the red spiked shell remains visible.
