@@ -2,6 +2,7 @@ extends CharacterBody2D
 
 const MOVE_SPEED := 230.0
 const JUMP_VELOCITY := -430.0
+const STOMP_BOUNCE := -260.0
 var gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity")
 var spawn_position := Vector2.ZERO
 
@@ -20,8 +21,13 @@ func _physics_process(delta: float) -> void:
 
 func _check_danger() -> void:
 	for index in range(get_slide_collision_count()):
-		var collider := get_slide_collision(index).get_collider()
+		var collision := get_slide_collision(index)
+		var collider := collision.get_collider()
 		if collider is Node and collider.is_in_group("enemies"):
+			if collision.get_normal().y < -0.6 and velocity.y > 0.0:
+				collider.queue_free()
+				velocity.y = STOMP_BOUNCE
+				continue
 			_respawn()
 			return
 		if collider is StaticBody2D and int(collider.get_meta("block_id", 0)) == 3:
