@@ -9,15 +9,29 @@ var gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity")
 var spawn_position := Vector2.ZERO
 var animation_time := 0.0
 var visual: Polygon2D
+var shot_cooldown := 0.0
+var selected_component := "armor"
+var weapon_hint: Label
+const PLAYER_PROJECTILE_SCENE: PackedScene = preload("res://scenes/player_projectile.tscn")
 
 func _ready() -> void:
 	add_to_group("player")
 	spawn_position = global_position
 	visual = get_node_or_null("Visual") as Polygon2D
+	weapon_hint = Label.new()
+	weapon_hint.text = "F: FIRE   1: ARMOR   2: JETPACK   3: BOWSER"
+	weapon_hint.position = Vector2(12, 12)
+	weapon_hint.add_theme_font_size_override("font_size", 14)
+	weapon_hint.add_theme_color_override("font_color", Color("#ffffff"))
+	var hud := CanvasLayer.new()
+	hud.add_child(weapon_hint)
+	get_tree().current_scene.add_child(hud)
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y += gravity * delta
+	shot_cooldown = maxf(0.0, shot_cooldown - delta)
+	_handle_weapon_input()
 	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
 		velocity.y = JUMP_VELOCITY
 
@@ -26,6 +40,31 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_check_danger()
 	_animate_visual(delta, direction)
+
+func _handle_weapon_input() -> void:
+	if Input.is_key_pressed(KEY_1):
+		selected_component = "armor"
+	elif Input.is_key_pressed(KEY_2):
+		selected_component = "jetpack"
+	elif Input.is_key_pressed(KEY_3):
+		selected_component = "health"
+	if weapon_hint != null:
+		weapon_hint.text = "F: FIRE   TARGET: " + selected_component.to_upper() + "   (1 ARMOR / 2 JETPACK / 3 BOWSER)"
+	if Input.is_key_pressed(KEY_F) and shot_cooldown <= 0.0:
+		_fire_player_projectile()
+		shot_cooldown = 0.32
+
+func _fire_player_projectile() -> void:
+	var projectile := PLAYER_PROJECTILE_SCENE.instantiate() as Area2D
+	var facing := 1.0
+	if visual != null and visual.scale.x < 0.0:
+		facing = -1.0
+	var muzzle := global_position + Vector2(18.0 * facing, -2.0)
+	projectile.global_position = muzzle
+	projectile.set("direction", Vector2(facing, 0.0))
+	projectile.set("component_target", selected_component)
+	get_tree().current_scene.add_child(projectile)
+
 
 func _animate_visual(delta: float, direction: float) -> void:
 	if visual == null:
