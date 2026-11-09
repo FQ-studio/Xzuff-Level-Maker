@@ -12,3 +12,9 @@ func _physics_process(delta: float) -> void:
 	var direction := Input.get_axis("ui_left", "ui_right")
 	velocity.x = direction * MOVE_SPEED
 	move_and_slide()
+	for index in range(get_slide_collision_count()):
+		var hit := get_slide_collision(index)
+		if hit.get_collider() is StaticBody2D:
+			var normal := hit.get_normal()
+			if normal.y < -0.7:
+				continue
