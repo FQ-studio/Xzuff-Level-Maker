@@ -66,7 +66,10 @@ func _check_danger() -> void:
 		var collider := collision.get_collider()
 		if collider is Node and collider.is_in_group("enemies"):
 			if collision.get_normal().y < -0.6 and velocity.y > 0.0:
-				collider.queue_free()
+				if collider.has_method("take_stomp"):
+					collider.take_stomp()
+				else:
+					collider.queue_free()
 				velocity.y = STOMP_BOUNCE
 				continue
 			_respawn()
