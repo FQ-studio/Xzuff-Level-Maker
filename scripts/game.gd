@@ -137,6 +137,8 @@ func _spawn_boss() -> void:
 	add_child(boss)
 
 func _draw() -> void:
+	_draw_castle_arena()
+
 	for y in range(level_cells.size()):
 		for x in range(level_cells[y].size()):
 			var block_id := int(level_cells[y][x])
@@ -164,3 +166,32 @@ func _draw() -> void:
 					draw_rect(Rect2(rect.position + Vector2(2, 2), Vector2(CELL - 4, CELL - 4)), Color("#78869d"), false, 2.0)
 					draw_line(rect.position + Vector2(0, CELL / 2.0), rect.position + Vector2(CELL, CELL / 2.0), Color("#3b4659"), 2.0)
 			draw_rect(rect, Color("#182536"), false, 1.0)
+
+func _draw_castle_arena() -> void:
+	# Scrolling sky and distant hills behind the playable level.
+	draw_rect(Rect2(0, 0, level_width * CELL, level_height * CELL), Color("#83c9ee"))
+	for i in range(7):
+		var x := float(i) * 260.0 + 70.0
+		var cloud_y := 82.0 + float(i % 2) * 24.0
+		draw_circle(Vector2(x, cloud_y), 25.0, Color("#d9eff8"))
+		draw_circle(Vector2(x + 24.0, cloud_y), 19.0, Color("#d9eff8"))
+		draw_circle(Vector2(x - 22.0, cloud_y + 9.0), 17.0, Color("#d9eff8"))
+	for i in range(6):
+		var hill_x := float(i) * 300.0 - 40.0
+		draw_colored_polygon(PackedVector2Array([Vector2(hill_x, 320), Vector2(hill_x + 115, 205), Vector2(hill_x + 245, 320)]), Color("#78b987"))
+
+	# Castle at the far end of the level: keep the central gate visible.
+	var cx := float(level_width * CELL) - 250.0
+	draw_rect(Rect2(cx, 174, 190, 210), Color("#7b8295"))
+	draw_rect(Rect2(cx + 12, 188, 166, 196), Color("#aeb6c5"))
+	draw_rect(Rect2(cx + 70, 276, 50, 108), Color("#343d59"))
+	for tower_x in [cx - 18.0, cx + 142.0]:
+		draw_rect(Rect2(tower_x, 125, 66, 259), Color("#737b91"))
+		draw_rect(Rect2(tower_x - 8, 112, 82, 22), Color("#4e5871"))
+		draw_colored_polygon(PackedVector2Array([Vector2(tower_x - 8, 112), Vector2(tower_x + 33, 65), Vector2(tower_x + 74, 112)]), Color("#a74743"))
+		draw_rect(Rect2(tower_x + 25, 155, 16, 28), Color("#343d59"))
+	draw_rect(Rect2(cx + 30, 215, 18, 25), Color("#f5d77a"))
+	draw_rect(Rect2(cx + 142, 215, 18, 25), Color("#f5d77a"))
+	draw_line(Vector2(cx + 95, 70), Vector2(cx + 95, 28), Color("#3e465e"), 3.0)
+	draw_colored_polygon(PackedVector2Array([Vector2(cx + 98, 30), Vector2(cx + 139, 43), Vector2(cx + 98, 56)]), Color("#d94b48"))
+
