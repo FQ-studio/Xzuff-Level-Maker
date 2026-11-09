@@ -147,9 +147,10 @@ func _on_grid_input(event: InputEvent) -> void:
 				if selected_tool == 0:
 					enemies.erase(cell)
 					if boss_cell == cell:
-							weapon_round_enabled = false
-				if weapon_round_toggle != null:
-					weapon_round_toggle.button_pressed = false
+						boss_cell = Vector2i(-1, -1)
+						weapon_round_enabled = false
+						if weapon_round_toggle != null:
+							weapon_round_toggle.button_pressed = false
 				status_label.text = "Block updated."
 		grid_view.queue_redraw()
 
@@ -223,14 +224,13 @@ func _load_level() -> void:
 					enemies.append(cell)
 
 	boss_cell = Vector2i(-1, -1)
+	weapon_round_enabled = false
 	var boss_data = parsed.get("boss", null)
 	if boss_data is Dictionary and boss_data.has("x") and boss_data.has("y"):
 		var candidate := Vector2i(int(boss_data["x"]), int(boss_data["y"]))
 		if candidate.x >= 0 and candidate.x < GRID_W and candidate.y >= 0 and candidate.y < GRID_H:
 			boss_cell = candidate
 			weapon_round_enabled = bool(boss_data.get("weapon_round", false))
-		else:
-			weapon_round_enabled = false
 	if weapon_round_toggle != null:
 		weapon_round_toggle.button_pressed = weapon_round_enabled
 
