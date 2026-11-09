@@ -11,6 +11,7 @@ var animation_time := 0.0
 var visual: Polygon2D
 
 func _ready() -> void:
+	add_to_group("player")
 	spawn_position = global_position
 	visual = get_node_or_null("Visual") as Polygon2D
 
@@ -66,6 +67,9 @@ func _check_danger() -> void:
 		var collider := collision.get_collider()
 		if collider is Node and collider.is_in_group("enemies"):
 			if collision.get_normal().y < -0.6 and velocity.y > 0.0:
+				if collider.has_method("can_be_stomped") and not collider.can_be_stomped():
+					_respawn()
+					return
 				if collider.has_method("take_stomp"):
 					collider.take_stomp()
 				else:
