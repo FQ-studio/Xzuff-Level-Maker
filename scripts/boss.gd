@@ -30,7 +30,7 @@ func _process(delta: float) -> void:
 
 func _status_text() -> String:
 	if weapon_round:
-		return "ARMOR 1/1  JETPACK 1/1  BOWSER " + str(max(health, 0)) + "/" + str(max_health)
+		return "A■  J■  B■■■"
 	return "BOWSER " + str(max(health, 0)) + "/" + str(max_health)
 
 func _physics_process(delta: float) -> void:
@@ -73,8 +73,6 @@ func _draw() -> void:
 	draw_arc(Vector2(0, -2), 15, 0.0, TAU, 32, Color("#713c2d"), 2.0)
 	if weapon_round:
 		_draw_jetpack()
-
-	# Green body and segmented belly
 
 	# Green body and segmented belly
 	draw_colored_polygon(PackedVector2Array([Vector2(-17, -17), Vector2(15, -17), Vector2(20, 8), Vector2(12, 22), Vector2(-13, 22), Vector2(-21, 7)]), skin)
@@ -133,6 +131,8 @@ func _draw_helmet() -> void:
 
 func _draw_fire_pistol() -> void:
 	# Bowser grips a compact, orange-accented fire pistol in front of his body.
+	draw_line(Vector2(8, 5), Vector2(18, 1), Color("#72b83b"), 6.0)
+	draw_circle(Vector2(18, 1), 4.0, Color("#8bc84a"))
 	draw_rect(Rect2(13, -2, 12, 6), Color("#354052"))
 	draw_rect(Rect2(22, -5, 13, 5), Color("#596a80"))
 	draw_rect(Rect2(31, -4, 5, 3), Color("#f08a35"))
