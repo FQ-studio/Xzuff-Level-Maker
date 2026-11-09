@@ -1,11 +1,14 @@
 extends Node2D
 
 const CELL := 32
+const ENEMY_SCENE: PackedScene = preload("res://scenes/enemy.tscn")
 var level_cells: Array = []
+var enemy_cells: Array = []
 
 func _ready() -> void:
 	_load_level()
 	_build_world()
+	_spawn_enemies()
 	queue_redraw()
 
 func _load_level() -> void:
@@ -15,8 +18,11 @@ func _load_level() -> void:
 	if file == null:
 		return
 	var parsed = JSON.parse_string(file.get_as_text())
-	if parsed is Dictionary and parsed.has("cells"):
-		level_cells = parsed["cells"]
+	if parsed is Dictionary:
+		if parsed.has("cells"):
+			level_cells = parsed["cells"]
+		if parsed.has("enemies"):
+			enemy_cells = parsed["enemies"]
 
 func _build_world() -> void:
 	if level_cells.is_empty():
@@ -40,6 +46,17 @@ func _build_world() -> void:
 			collision.shape = shape
 			body.add_child(collision)
 			add_child(body)
+
+func _spawn_enemies() -> void:
+	for data in enemy_cells:
+		if not data is Dictionary or not data.has("x") or not data.has("y"):
+			continue
+		var enemy := ENEMY_SCENE.instantiate()
+		enemy.position = Vector2(
+			float(data["x"]) * CELL + CELL / 2.0,
+			float(data["y"]) * CELL + CELL / 2.0
+		)
+		add_child(enemy)
 
 func _draw() -> void:
 	for y in range(level_cells.size()):
