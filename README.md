@@ -4,18 +4,22 @@ A 2D platform game and level-building prototype made with **Godot 4** and **GDSc
 
 ## Current prototype
 
-- Main menu
-- Grid-based level editor
-- Erase, ground, brick, and hazard block tools
-- Save a level to the local device
-- Play/test scene
-- Original placeholder player character
+- Main menu and 2D platform play/test scene
+- 48 × 12 grid-based level editor with horizontal scrolling
+- Erase, ground, brick, hazard, castle, regular enemy, and final boss tools
+- Save and load levels locally on the device
+- Automatic expansion of older 24-column saved levels to 48 columns
+- Player movement, jumping, idle/run/jump visual animation, and respawn
+- Smooth player-follow camera with level bounds
+- Optimized horizontal runs of matching tile collision shapes
+- Final boss with three stomp hits before defeat
 - GitHub Actions workflow for headless Godot validation
 
 ## Controls
 
 - Move: Left / Right arrow keys
 - Jump: Space / Enter
+- Editor: choose a tool, then tap/click a grid cell; swipe horizontally to reach later columns
 
 ## Run
 
@@ -27,4 +31,4 @@ Use original Xzuff characters and assets, or third-party assets whose licenses e
 
 ## Status
 
-Early prototype. Physics collision with placed blocks, enemies, a full tile palette, level export/import, and visual assets are still planned.
+Early playable prototype. GitHub Actions checks project import/startup in headless mode; this is not a substitute for manual gameplay testing on a device.
