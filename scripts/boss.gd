@@ -233,11 +233,3 @@ func _draw_fire_pistol() -> void:
 	draw_rect(Rect2(17, 3, 5, 9), Color("#6b4935"))
 	draw_rect(Rect2(24, -6, 3, 2), Color("#d7e0ea"))
 
-func take_stomp() -> void:
-	health -= 1
-	damage_flash = 0.18
-	if health_label != null:
-		health_label.text = _status_text()
-	queue_redraw()
-	if health <= 0:
-		queue_free()
