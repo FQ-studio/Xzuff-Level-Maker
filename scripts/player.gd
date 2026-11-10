@@ -12,11 +12,11 @@ var visual: Polygon2D
 var shot_cooldown := 0.0
 var selected_component := "armor"
 var weapon_hint: Label
-var touch_left := false
-var touch_right := false
+var touch_axis := 0.0
 var touch_jump := false
 var touch_fire := false
 var touch_controls: CanvasLayer
+const TOUCH_JOYSTICK_SCRIPT: Script = preload("res://scripts/touch_joystick.gd")
 const PLAYER_PROJECTILE_SCENE: PackedScene = preload("res://scenes/player_projectile.tscn")
 
 func _ready() -> void:
@@ -41,12 +41,7 @@ func _physics_process(delta: float) -> void:
 	if (Input.is_action_just_pressed("ui_accept") or touch_jump) and is_on_floor():
 		velocity.y = JUMP_VELOCITY
 
-	var direction := Input.get_axis("ui_left", "ui_right")
-	if touch_left:
-		direction -= 1.0
-	if touch_right:
-		direction += 1.0
-	direction = clampf(direction, -1.0, 1.0)
+	var direction := clampf(Input.get_axis("ui_left", "ui_right") + touch_axis, -1.0, 1.0)
 	velocity.x = direction * MOVE_SPEED
 	move_and_slide()
 	_check_danger()
@@ -77,10 +72,16 @@ func _setup_touch_controls() -> void:
 	touch_controls.add_child(root)
 	get_tree().current_scene.add_child(touch_controls)
 
-	_add_touch_button(root, "◀", Vector2(0.02, 0.78), Vector2(76, 72),
-		func(pressed: bool): touch_left = pressed, false)
-	_add_touch_button(root, "▶", Vector2(0.12, 0.78), Vector2(76, 72),
-		func(pressed: bool): touch_right = pressed, false)
+	var joystick := Control.new()
+	joystick.set_script(TOUCH_JOYSTICK_SCRIPT)
+	joystick.anchor_left = 0.025
+	joystick.anchor_top = 0.66
+	joystick.anchor_right = 0.025
+	joystick.anchor_bottom = 0.66
+	joystick.offset_right = 132.0
+	joystick.offset_bottom = 132.0
+	joystick.horizontal_changed.connect(func(value: float): touch_axis = value)
+	root.add_child(joystick)
 	_add_touch_button(root, "JUMP", Vector2(0.82, 0.78), Vector2(104, 72),
 		func(pressed: bool): touch_jump = pressed, false)
 	_add_touch_button(root, "FIRE", Vector2(0.82, 0.60), Vector2(104, 64),
