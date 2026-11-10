@@ -24,7 +24,7 @@ func _ready() -> void:
 	spawn_position = global_position
 	visual = get_node_or_null("Visual") as Polygon2D
 	weapon_hint = Label.new()
-	weapon_hint.text = "F: FIRE   1: ARMOR   2: JETPACK   3: BOWSER"
+	weapon_hint.text = _control_hint()
 	weapon_hint.position = Vector2(12, 12)
 	weapon_hint.add_theme_font_size_override("font_size", 14)
 	weapon_hint.add_theme_color_override("font_color", Color("#ffffff"))
@@ -32,6 +32,11 @@ func _ready() -> void:
 	hud.add_child(weapon_hint)
 	get_tree().current_scene.add_child(hud)
 	_setup_touch_controls()
+
+func _control_hint() -> String:
+	if touch_controls != null:
+		return "TOUCH: FIRE / ARM / JET / BOSS   •   JOYSTICK + JUMP"
+	return "F: FIRE   1: ARMOR   2: JETPACK   3: BOWSER"
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
@@ -55,7 +60,7 @@ func _handle_weapon_input() -> void:
 	elif Input.is_key_pressed(KEY_3):
 		selected_component = "health"
 	if weapon_hint != null:
-		weapon_hint.text = "F: FIRE   TARGET: " + selected_component.to_upper() + "   (1 ARMOR / 2 JETPACK / 3 BOWSER)"
+		weapon_hint.text = ("TOUCH: FIRE   TARGET: " if touch_controls != null else "F: FIRE   TARGET: ") + selected_component.to_upper() + ("   •   JOYSTICK + JUMP" if touch_controls != null else "   (1 ARMOR / 2 JETPACK / 3 BOWSER)")
 	if (Input.is_key_pressed(KEY_F) or touch_fire) and shot_cooldown <= 0.0:
 		_fire_player_projectile()
 		shot_cooldown = 0.32
